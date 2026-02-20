@@ -11,6 +11,12 @@
         input, select, textarea, button { touch-action: manipulation; }
         .history-item { transition: all 0.2s; }
         select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E"); background-position: right 1rem center; background-repeat: no-repeat; background-size: 1em; }
+        input[type="date"] { 
+            height: 58px; 
+            line-height: 58px; 
+            padding-top: 0; 
+            padding-bottom: 0; 
+        }
     </style>
 </head>
 <body class="bg-zinc-100 min-h-screen overflow-x-hidden">
@@ -28,35 +34,40 @@
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
         <!-- FORM -->
         <div class="lg:col-span-7 bg-white rounded-3xl shadow p-4 sm:p-6 space-y-8">
-            <!-- TOP ROW - PERFECTLY STACKED & FULL-WIDTH ON PORTRAIT (no cropping ever) -->
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <!-- DATE -->
+            
+            <!-- PERFECTED TOP SECTION - Date full-width on its own line, then Start + End perfectly balanced below -->
+            <div class="space-y-4">
+                <!-- DATE - now isolated full-width with exact matching height & styling -->
                 <div>
                     <label class="block text-xs font-medium text-zinc-500 mb-1">DATE</label>
-                    <input id="date" type="date" class="w-full p-4 border border-zinc-200 rounded-2xl text-lg">
+                    <input id="date" type="date" 
+                           class="w-full p-4 border border-zinc-200 rounded-2xl text-lg bg-white">
                 </div>
 
-                <!-- SHIFT START - 15-MIN SELECTS -->
-                <div>
-                    <label class="block text-xs font-medium text-zinc-500 mb-1">SHIFT START</label>
-                    <div class="flex items-center gap-2">
-                        <select id="startHour" onchange="updatePreview(); autoSaveCurrent()" 
-                                class="flex-1 p-4 border border-zinc-200 rounded-2xl text-lg bg-white"></select>
-                        <span class="text-3xl text-zinc-300 pb-1">:</span>
-                        <select id="startMin" onchange="updatePreview(); autoSaveCurrent()" 
-                                class="flex-1 p-4 border border-zinc-200 rounded-2xl text-lg bg-white"></select>
+                <!-- SHIFTS - side-by-side on larger screens, stacked on portrait (zero cropping) -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <!-- SHIFT START -->
+                    <div>
+                        <label class="block text-xs font-medium text-zinc-500 mb-1">SHIFT START</label>
+                        <div class="flex items-center gap-2 bg-white border border-zinc-200 rounded-2xl p-1">
+                            <select id="startHour" onchange="updatePreview(); autoSaveCurrent()" 
+                                    class="flex-1 p-3.5 border-0 rounded-l-2xl text-lg bg-transparent focus:outline-none"></select>
+                            <span class="text-3xl text-zinc-300 font-light">:</span>
+                            <select id="startMin" onchange="updatePreview(); autoSaveCurrent()" 
+                                    class="flex-1 p-3.5 border-0 rounded-r-2xl text-lg bg-transparent focus:outline-none"></select>
+                        </div>
                     </div>
-                </div>
 
-                <!-- SHIFT END - 15-MIN SELECTS -->
-                <div>
-                    <label class="block text-xs font-medium text-zinc-500 mb-1">SHIFT END</label>
-                    <div class="flex items-center gap-2">
-                        <select id="endHour" onchange="updatePreview(); autoSaveCurrent()" 
-                                class="flex-1 p-4 border border-zinc-200 rounded-2xl text-lg bg-white"></select>
-                        <span class="text-3xl text-zinc-300 pb-1">:</span>
-                        <select id="endMin" onchange="updatePreview(); autoSaveCurrent()" 
-                                class="flex-1 p-4 border border-zinc-200 rounded-2xl text-lg bg-white"></select>
+                    <!-- SHIFT END -->
+                    <div>
+                        <label class="block text-xs font-medium text-zinc-500 mb-1">SHIFT END</label>
+                        <div class="flex items-center gap-2 bg-white border border-zinc-200 rounded-2xl p-1">
+                            <select id="endHour" onchange="updatePreview(); autoSaveCurrent()" 
+                                    class="flex-1 p-3.5 border-0 rounded-l-2xl text-lg bg-transparent focus:outline-none"></select>
+                            <span class="text-3xl text-zinc-300 font-light">:</span>
+                            <select id="endMin" onchange="updatePreview(); autoSaveCurrent()" 
+                                    class="flex-1 p-3.5 border-0 rounded-r-2xl text-lg bg-transparent focus:outline-none"></select>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -131,7 +142,7 @@
     </div>
 </div>
 
-<!-- HISTORY MODAL (unchanged) -->
+<!-- HISTORY MODAL -->
 <div id="historyModal" class="hidden fixed inset-0 bg-black/70 flex items-end justify-center z-50 p-4">
     <div class="bg-white rounded-3xl w-full max-w-lg max-h-[90vh] flex flex-col shadow-2xl overflow-hidden">
         <div class="p-6 border-b flex justify-between items-center">
@@ -181,7 +192,6 @@
     }
 
     function populateTimeSelects() {
-        // Hours 00-23
         const hourSelects = [document.getElementById('startHour'), document.getElementById('endHour')];
         hourSelects.forEach(sel => {
             sel.innerHTML = '';
@@ -193,7 +203,6 @@
             }
         });
 
-        // Minutes 00,15,30,45
         const minOptions = ['00','15','30','45'];
         const minSelects = [document.getElementById('startMin'), document.getElementById('endMin')];
         minSelects.forEach(sel => {
@@ -378,14 +387,12 @@ ${document.getElementById('aob').value || '—'}`;
 
         document.getElementById('date').value = item.date;
 
-        // New format
         if (item.data.startHour) {
             document.getElementById('startHour').value = item.data.startHour;
             document.getElementById('startMin').value = item.data.startMin;
             document.getElementById('endHour').value = item.data.endHour;
             document.getElementById('endMin').value = item.data.endMin;
         } else if (item.data.startTime) {
-            // Backward compatibility for old saves
             const [sh, sm] = (item.data.startTime || '09:00').split(':');
             const [eh, em] = (item.data.endTime || '17:00').split(':');
             document.getElementById('startHour').value = sh || '09';
