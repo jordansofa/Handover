@@ -7,6 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body { font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        pre { word-break: break-word; overflow-wrap: break-word; }
     </style>
 </head>
 <body class="bg-zinc-100 min-h-screen">
@@ -15,6 +16,7 @@
         <h1 class="text-4xl font-bold text-zinc-900">📋 Daily Handover</h1>
         <div class="flex gap-3">
             <button onclick="newDay()" class="px-6 py-3 bg-white hover:bg-zinc-200 border border-zinc-300 rounded-2xl font-medium">New Day</button>
+            <button onclick="showHistory()" class="px-6 py-3 bg-white hover:bg-zinc-200 border border-zinc-300 rounded-2xl font-medium">📖 History</button>
             <button onclick="copyHandover()" class="px-8 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-semibold shadow-lg">📋 Copy Handover</button>
         </div>
     </div>
@@ -50,19 +52,19 @@
                         <label class="block text-sm text-zinc-500 mb-1">Daily Sales</label>
                         <div class="relative">
                             <span class="absolute left-5 top-4 text-xl text-zinc-400">£</span>
-                            <input id="sales" type="text" placeholder="12,345" class="w-full pl-9 p-4 border border-zinc-200 rounded-2xl text-xl">
+                            <input id="sales" type="text" placeholder="2,000" class="w-full pl-9 p-4 border border-zinc-200 rounded-2xl text-xl">
                         </div>
                     </div>
                     <div>
                         <label class="block text-sm text-zinc-500 mb-1">Daily Target</label>
                         <div class="relative">
                             <span class="absolute left-5 top-4 text-xl text-zinc-400">£</span>
-                            <input id="target" type="text" placeholder="10,000" class="w-full pl-9 p-4 border border-zinc-200 rounded-2xl text-xl">
+                            <input id="target" type="text" placeholder="900" class="w-full pl-9 p-4 border border-zinc-200 rounded-2xl text-xl">
                         </div>
                     </div>
                     <div>
                         <label class="block text-sm text-zinc-500 mb-1">Daily Footfall</label>
-                        <input id="footfall" type="text" placeholder="450" class="w-full p-4 border border-zinc-200 rounded-2xl text-xl">
+                        <input id="footfall" type="text" placeholder="3" class="w-full p-4 border border-zinc-200 rounded-2xl text-xl">
                     </div>
                 </div>
             </div>
@@ -79,7 +81,7 @@
                     <label class="block text-xs font-medium text-zinc-500">NEW QUOTES</label>
                     <button onclick="addQuote()" class="px-5 py-2 bg-emerald-100 hover:bg-emerald-200 text-emerald-700 rounded-2xl text-sm font-medium">+ Add Quote</button>
                 </div>
-                <div id="quotesList" class="space-y-3"></div>
+                <div id="quotesList" class="space-y-3 max-h-60 overflow-auto pr-2"></div>
             </div>
 
             <!-- CLIENT FEEDBACK -->
@@ -100,9 +102,23 @@
             <div class="sticky top-6">
                 <div class="bg-white rounded-3xl shadow p-8">
                     <h3 class="font-semibold text-lg mb-4 text-zinc-700">Live Preview</h3>
-                    <pre id="preview" class="bg-zinc-50 p-6 rounded-2xl text-sm whitespace-pre-wrap font-mono leading-relaxed min-h-[520px] overflow-auto"></pre>
+                    <pre id="preview" class="bg-zinc-50 p-6 rounded-2xl text-sm whitespace-pre-wrap font-mono leading-relaxed min-h-[520px] overflow-auto break-words"></pre>
                 </div>
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- HISTORY MODAL -->
+<div id="historyModal" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-3xl w-full max-w-lg max-h-[85vh] flex flex-col shadow-2xl">
+        <div class="p-6 border-b flex justify-between items-center">
+            <h3 class="text-2xl font-bold text-zinc-900">📖 Handover History</h3>
+            <button onclick="closeHistory()" class="text-zinc-400 hover:text-zinc-600 text-3xl leading-none">×</button>
+        </div>
+        <div id="historyList" class="flex-1 p-6 overflow-auto space-y-4"></div>
+        <div class="p-6 border-t bg-zinc-50 rounded-b-3xl">
+            <button onclick="closeHistory()" class="w-full py-4 bg-zinc-200 hover:bg-zinc-300 rounded-2xl font-medium">Close</button>
         </div>
     </div>
 </div>
@@ -111,7 +127,7 @@
     let quotes = [];
 
     function addQuote() {
-        quotes.push({num: '', val: ''});
+        quotes.push({num: 'SQ-', val: ''});
         renderQuotes();
         updatePreview();
     }
@@ -129,14 +145,14 @@
             const row = document.createElement('div');
             row.className = 'flex gap-3';
             row.innerHTML = `
-                <input type="text" value="${q.num}" placeholder="Quote #" 
+                <input type="text" value="${q.num}" placeholder="SQ-12345" 
                        oninput="quotes[${i}].num=this.value; updatePreview()" 
-                       class="flex-1 p-4 border border-zinc-200 rounded-2xl">
+                       class="flex-1 p-4 border border-zinc-200 rounded-2xl text-base">
                 <input type="text" value="${q.val}" placeholder="£ value" 
                        oninput="quotes[${i}].val=this.value; updatePreview()" 
-                       class="flex-1 p-4 border border-zinc-200 rounded-2xl">
+                       class="flex-1 p-4 border border-zinc-200 rounded-2xl text-base">
                 <button onclick="removeQuote(${i}); updatePreview()" 
-                        class="px-5 text-red-500 hover:bg-red-50 rounded-2xl">✕</button>
+                        class="px-5 text-red-500 hover:bg-red-50 rounded-2xl text-xl font-light">✕</button>
             `;
             container.appendChild(row);
         });
@@ -149,7 +165,7 @@
 
     function formatPreview() {
         const dateInput = document.getElementById('date').value;
-        const [y, m, d] = dateInput.split('-');
+        const [y, m, d] = dateInput ? dateInput.split('-') : ['','',''];
         const dateStr = dateInput ? `${d}/${m}/${y}` : 'Not set';
 
         const start = document.getElementById('startTime').value || '??:??';
@@ -159,7 +175,9 @@
         const target = document.getElementById('target').value || '—';
         const footfall = document.getElementById('footfall').value || '—';
 
-        let quoteText = quotes.length ? quotes.map(q => `Quote ${q.num || '—'}: ${q.val || '—'}`).join('\n') : 'None';
+        let quoteText = quotes.length 
+            ? quotes.map(q => `Quote ${q.num || 'SQ-—'}: £${q.val || '—'}`).join('\n')
+            : 'None';
 
         return `Date: ${dateStr}
 Shift: ${start} - ${end}
@@ -190,26 +208,117 @@ ${document.getElementById('aob').value || '—'}`;
     function copyHandover() {
         const text = formatPreview();
         navigator.clipboard.writeText(text).then(() => {
-            const orig = event.currentTarget.innerHTML;
-            event.currentTarget.innerHTML = '✅ Copied!';
-            setTimeout(() => event.currentTarget.innerHTML = orig, 1800);
+            const btn = event.currentTarget;
+            const origText = btn.innerHTML;
+            btn.innerHTML = '✅ Copied!';
+            btn.style.backgroundColor = '#10b981';
+            setTimeout(() => {
+                btn.innerHTML = origText;
+                btn.style.backgroundColor = '';
+            }, 1800);
         });
+        saveToHistory();   // auto-save every time you copy
+    }
+
+    function saveToHistory() {
+        const dateKey = document.getElementById('date').value;
+        if (!dateKey) return;
+
+        let history = JSON.parse(localStorage.getItem('handoverHistory') || '[]');
+
+        const currentData = {
+            startTime: document.getElementById('startTime').value,
+            endTime: document.getElementById('endTime').value,
+            sales: document.getElementById('sales').value,
+            target: document.getElementById('target').value,
+            footfall: document.getElementById('footfall').value,
+            notes: document.getElementById('notes').value,
+            feedback: document.getElementById('feedback').value,
+            aob: document.getElementById('aob').value,
+            quotes: quotes.slice()
+        };
+
+        // remove old entry for this date
+        history = history.filter(item => item.date !== dateKey);
+
+        history.push({
+            date: dateKey,
+            preview: formatPreview(),
+            data: currentData
+        });
+
+        // newest first
+        history.sort((a, b) => b.date.localeCompare(a.date));
+
+        localStorage.setItem('handoverHistory', JSON.stringify(history));
+    }
+
+    function showHistory() {
+        const modal = document.getElementById('historyModal');
+        modal.classList.remove('hidden');
+        renderHistoryList();
+    }
+
+    function closeHistory() {
+        document.getElementById('historyModal').classList.add('hidden');
+    }
+
+    function renderHistoryList() {
+        const container = document.getElementById('historyList');
+        let history = JSON.parse(localStorage.getItem('handoverHistory') || '[]');
+
+        if (history.length === 0) {
+            container.innerHTML = `<p class="text-zinc-400 italic text-center py-12">No handovers saved yet.<br>Use the Copy button to save the current day.</p>`;
+            return;
+        }
+
+        let html = '';
+        history.forEach(item => {
+            const [y, m, d] = item.date.split('-');
+            const niceDate = `${d}/${m}/${y}`;
+            html += `
+                <div onclick="loadFromHistory('${item.date}')" 
+                     class="bg-zinc-50 hover:bg-emerald-50 border border-transparent hover:border-emerald-200 p-5 rounded-2xl cursor-pointer transition-all">
+                    <div class="font-semibold text-lg">${niceDate}</div>
+                    <div class="text-xs text-zinc-500 mt-1 line-clamp-2">${item.preview.split('\n')[3] || ''}</div>
+                </div>`;
+        });
+        container.innerHTML = html;
+    }
+
+    function loadFromHistory(dateKey) {
+        const history = JSON.parse(localStorage.getItem('handoverHistory') || '[]');
+        const item = history.find(h => h.date === dateKey);
+        if (!item) return;
+
+        document.getElementById('date').value = item.date;
+        document.getElementById('startTime').value = item.data.startTime || '';
+        document.getElementById('endTime').value = item.data.endTime || '';
+        document.getElementById('sales').value = item.data.sales || '';
+        document.getElementById('target').value = item.data.target || '';
+        document.getElementById('footfall').value = item.data.footfall || '';
+        document.getElementById('notes').value = item.data.notes || '';
+        document.getElementById('feedback').value = item.data.feedback || '';
+        document.getElementById('aob').value = item.data.aob || '';
+
+        quotes = item.data.quotes ? item.data.quotes.slice() : [];
+        renderQuotes();
+        updatePreview();
+        closeHistory();
     }
 
     function newDay() {
         if (confirm('Start a fresh handover for today?')) {
             quotes = [];
-            document.querySelectorAll('input, textarea').forEach(el => {
-                if (el.id !== 'date') el.value = '';
-            });
+            document.querySelectorAll('input:not(#date), textarea').forEach(el => el.value = '');
             document.getElementById('date').value = getToday();
             renderQuotes();
             updatePreview();
         }
     }
 
-    // Auto-save to browser storage
-    function autoSave() {
+    // Auto-save current day progress (so you never lose work)
+    function autoSaveCurrent() {
         const data = {
             date: document.getElementById('date').value,
             startTime: document.getElementById('startTime').value,
@@ -222,11 +331,12 @@ ${document.getElementById('aob').value || '—'}`;
             aob: document.getElementById('aob').value,
             quotes: quotes
         };
-        localStorage.setItem('handoverJordan', JSON.stringify(data));
+        localStorage.setItem('handoverCurrentJordan', JSON.stringify(data));
     }
 
     function loadSaved() {
-        const saved = localStorage.getItem('handoverJordan');
+        // Load previous session
+        const saved = localStorage.getItem('handoverCurrentJordan');
         if (saved) {
             const data = JSON.parse(saved);
             document.getElementById('date').value = data.date || getToday();
@@ -245,7 +355,6 @@ ${document.getElementById('aob').value || '—'}`;
         }
     }
 
-    // Event listeners for live update + autosave
     window.onload = () => {
         loadSaved();
         updatePreview();
@@ -253,7 +362,7 @@ ${document.getElementById('aob').value || '—'}`;
         inputs.forEach(el => {
             el.addEventListener('input', () => {
                 updatePreview();
-                autoSave();
+                autoSaveCurrent();
             });
         });
     };
